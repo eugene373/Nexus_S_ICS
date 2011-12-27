@@ -28,7 +28,7 @@ static int __init init_vdso(void)
 
 	um_vdso_addr = task_size - PAGE_SIZE;
 
-	vdsop = kmalloc(sizeof(struct page *), GFP_KERNEL);
+	vdsop = kmalloc(GFP_KERNEL, sizeof(struct page *));
 	if (!vdsop)
 		goto oom;
 

@@ -2340,7 +2340,6 @@ static void ivb_manual_fdi_link_train(struct drm_crtc *crtc)
 	temp |= FDI_LINK_TRAIN_PATTERN_1_IVB;
 	temp &= ~FDI_LINK_TRAIN_VOL_EMP_MASK;
 	temp |= FDI_LINK_TRAIN_400MV_0DB_SNB_B;
-	temp |= FDI_COMPOSITE_SYNC;
 	I915_WRITE(reg, temp | FDI_TX_ENABLE);
 
 	reg = FDI_RX_CTL(pipe);
@@ -2348,7 +2347,6 @@ static void ivb_manual_fdi_link_train(struct drm_crtc *crtc)
 	temp &= ~FDI_LINK_TRAIN_AUTO;
 	temp &= ~FDI_LINK_TRAIN_PATTERN_MASK_CPT;
 	temp |= FDI_LINK_TRAIN_PATTERN_1_CPT;
-	temp |= FDI_COMPOSITE_SYNC;
 	I915_WRITE(reg, temp | FDI_RX_ENABLE);
 
 	POSTING_READ(reg);
@@ -5336,31 +5334,6 @@ static void i9xx_update_cursor(struct drm_crtc *crtc, u32 base)
 	I915_WRITE(CURBASE(pipe), base);
 }
 
-static void ivb_update_cursor(struct drm_crtc *crtc, u32 base)
-{
-	struct drm_device *dev = crtc->dev;
-	struct drm_i915_private *dev_priv = dev->dev_private;
-	struct intel_crtc *intel_crtc = to_intel_crtc(crtc);
-	int pipe = intel_crtc->pipe;
-	bool visible = base != 0;
-
-	if (intel_crtc->cursor_visible != visible) {
-		uint32_t cntl = I915_READ(CURCNTR_IVB(pipe));
-		if (base) {
-			cntl &= ~CURSOR_MODE;
-			cntl |= CURSOR_MODE_64_ARGB_AX | MCURSOR_GAMMA_ENABLE;
-		} else {
-			cntl &= ~(CURSOR_MODE | MCURSOR_GAMMA_ENABLE);
-			cntl |= CURSOR_MODE_DISABLE;
-		}
-		I915_WRITE(CURCNTR_IVB(pipe), cntl);
-
-		intel_crtc->cursor_visible = visible;
-	}
-	/* and commit changes on next vblank */
-	I915_WRITE(CURBASE_IVB(pipe), base);
-}
-
 /* If no-part of the cursor is visible on the framebuffer, then the GPU may hang... */
 static void intel_crtc_update_cursor(struct drm_crtc *crtc,
 				     bool on)
@@ -5408,16 +5381,11 @@ static void intel_crtc_update_cursor(struct drm_crtc *crtc,
 	if (!visible && !intel_crtc->cursor_visible)
 		return;
 
-	if (IS_IVYBRIDGE(dev)) {
-		I915_WRITE(CURPOS_IVB(pipe), pos);
-		ivb_update_cursor(crtc, base);
-	} else {
-		I915_WRITE(CURPOS(pipe), pos);
-		if (IS_845G(dev) || IS_I865G(dev))
-			i845_update_cursor(crtc, base);
-		else
-			i9xx_update_cursor(crtc, base);
-	}
+	I915_WRITE(CURPOS(pipe), pos);
+	if (IS_845G(dev) || IS_I865G(dev))
+		i845_update_cursor(crtc, base);
+	else
+		i9xx_update_cursor(crtc, base);
 
 	if (visible)
 		intel_mark_busy(dev, to_intel_framebuffer(crtc->fb)->obj);
@@ -7404,20 +7372,6 @@ static void gen6_init_clock_gating(struct drm_device *dev)
 	I915_WRITE(WM3_LP_ILK, 0);
 	I915_WRITE(WM2_LP_ILK, 0);
 	I915_WRITE(WM1_LP_ILK, 0);
-
-	/* According to the BSpec vol1g, bit 12 (RCPBUNIT) clock
-	 * gating disable must be set.  Failure to set it results in
-	 * flickering pixels due to Z write ordering failures after
-	 * some amount of runtime in the Mesa "fire" demo, and Unigine
-	 * Sanctuary and Tropics, and apparently anything else with
-	 * alpha test or pixel discard.
-	 *
-	 * According to the spec, bit 11 (RCCUNIT) must also be set,
-	 * but we didn't debug actual testcases to find it out.
-	 */
-	I915_WRITE(GEN6_UCGCTL2,
-		   GEN6_RCPBUNIT_CLOCK_GATE_DISABLE |
-		   GEN6_RCCUNIT_CLOCK_GATE_DISABLE);
 
 	/*
 	 * According to the spec the following bits should be

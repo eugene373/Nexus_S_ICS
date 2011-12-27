@@ -278,9 +278,6 @@ static int rpm_callback(int (*cb)(struct device *), struct device *dev)
  * If a deferred resume was requested while the callback was running then carry
  * it out; otherwise send an idle notification for the device (if the suspend
  * failed) or for its parent (if the suspend succeeded).
- * If ->runtime_suspend failed with -EAGAIN or -EBUSY, and if the RPM_AUTO
- * flag is set and the next autosuspend-delay expiration time is in the
- * future, schedule another autosuspend attempt.
  *
  * This function must be called under dev->power.lock with interrupts disabled.
  */

@@ -1048,12 +1048,15 @@ static int show_mountinfo(struct seq_file *m, void *v)
 	if (err)
 		goto out;
 	seq_putc(m, ' ');
-
-	/* mountpoints outside of chroot jail will give SEQ_SKIP on this */
-	err = seq_path_root(m, &mnt_path, &root, " \t\n\\");
-	if (err)
-		goto out;
-
+	seq_path_root(m, &mnt_path, &root, " \t\n\\");
+	if (root.mnt != p->root.mnt || root.dentry != p->root.dentry) {
+		/*
+		 * Mountpoint is outside root, discard that one.  Ugly,
+		 * but less so than trying to do that in iterator in a
+		 * race-free way (due to renames).
+		 */
+		return SEQ_SKIP;
+	}
 	seq_puts(m, mnt->mnt_flags & MNT_READONLY ? " ro" : " rw");
 	show_mnt_opts(m, mnt);
 
@@ -1106,7 +1109,6 @@ static int show_vfsstat(struct seq_file *m, void *v)
 
 	/* device */
 	if (mnt->mnt_sb->s_op->show_devname) {
-		seq_puts(m, "device ");
 		err = mnt->mnt_sb->s_op->show_devname(m, mnt);
 	} else {
 		if (mnt->mnt_devname) {

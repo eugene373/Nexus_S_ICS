@@ -370,7 +370,6 @@ static void i915_save_modeset_reg(struct drm_device *dev)
 
 	/* Fences */
 	switch (INTEL_INFO(dev)->gen) {
-	case 7:
 	case 6:
 		for (i = 0; i < 16; i++)
 			dev_priv->saveFENCE[i] = I915_READ64(FENCE_REG_SANDYBRIDGE_0 + (i * 8));
@@ -405,7 +404,6 @@ static void i915_restore_modeset_reg(struct drm_device *dev)
 
 	/* Fences */
 	switch (INTEL_INFO(dev)->gen) {
-	case 7:
 	case 6:
 		for (i = 0; i < 16; i++)
 			I915_WRITE64(FENCE_REG_SANDYBRIDGE_0 + (i * 8), dev_priv->saveFENCE[i]);

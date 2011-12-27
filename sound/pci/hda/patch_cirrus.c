@@ -202,6 +202,15 @@ static int cs_dig_playback_pcm_cleanup(struct hda_pcm_stream *hinfo,
 	return snd_hda_multi_out_dig_cleanup(codec, &spec->multiout);
 }
 
+static void cs_update_input_select(struct hda_codec *codec)
+{
+	struct cs_spec *spec = codec->spec;
+	if (spec->cur_adc)
+		snd_hda_codec_write(codec, spec->cur_adc, 0,
+				    AC_VERB_SET_CONNECT_SEL,
+				    spec->adc_idx[spec->cur_input]);
+}
+
 /*
  * Analog capture
  */
@@ -215,6 +224,7 @@ static int cs_capture_pcm_prepare(struct hda_pcm_stream *hinfo,
 	spec->cur_adc = spec->adc_nid[spec->cur_input];
 	spec->cur_adc_stream_tag = stream_tag;
 	spec->cur_adc_format = format;
+	cs_update_input_select(codec);
 	snd_hda_codec_setup_stream(codec, spec->cur_adc, stream_tag, 0, format);
 	return 0;
 }
@@ -661,10 +671,8 @@ static int change_cur_input(struct hda_codec *codec, unsigned int idx,
 					   spec->cur_adc_stream_tag, 0,
 					   spec->cur_adc_format);
 	}
-	snd_hda_codec_write(codec, spec->cur_adc, 0,
-			    AC_VERB_SET_CONNECT_SEL,
-			    spec->adc_idx[idx]);
 	spec->cur_input = idx;
+	cs_update_input_select(codec);
 	return 1;
 }
 

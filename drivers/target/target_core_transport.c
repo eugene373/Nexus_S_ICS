@@ -2053,6 +2053,15 @@ EXPORT_SYMBOL(transport_generic_handle_data);
 int transport_generic_handle_tmr(
 	struct se_cmd *cmd)
 {
+	unsigned long flags;
+
+	spin_lock_irqsave(&cmd->t_state_lock, flags);
+	if (cmd->se_cmd_flags & SCF_SENT_CHECK_CONDITION) {
+		spin_unlock_irqrestore(&cmd->t_state_lock, flags);
+		return;
+	}
+	spin_unlock_irqrestore(&cmd->t_state_lock, flags);
+
 	/*
 	 * This is needed for early exceptions.
 	 */
@@ -2881,6 +2890,15 @@ static inline u32 transport_get_sectors_32(
 	struct se_cmd *cmd,
 	int *ret)
 {
+	unsigned long flags;
+
+	spin_lock_irqsave(&cmd->t_state_lock, flags);
+	if (cmd->se_cmd_flags & SCF_SENT_CHECK_CONDITION) {
+		spin_unlock_irqrestore(&cmd->t_state_lock, flags);
+		return;
+	}
+	spin_unlock_irqrestore(&cmd->t_state_lock, flags);
+
 	/*
 	 * Assume TYPE_DISK for non struct se_device objects.
 	 * Use 32-bit sector value.
@@ -5822,6 +5840,15 @@ EXPORT_SYMBOL(transport_check_aborted_status);
 
 void transport_send_task_abort(struct se_cmd *cmd)
 {
+	unsigned long flags;
+
+	spin_lock_irqsave(&cmd->t_state_lock, flags);
+	if (cmd->se_cmd_flags & SCF_SENT_CHECK_CONDITION) {
+		spin_unlock_irqrestore(&cmd->t_state_lock, flags);
+		return;
+	}
+	spin_unlock_irqrestore(&cmd->t_state_lock, flags);
+
 	/*
 	 * If there are still expected incoming fabric WRITEs, we wait
 	 * until until they have completed before sending a TASK_ABORTED

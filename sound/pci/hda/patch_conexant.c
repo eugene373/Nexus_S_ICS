@@ -3462,12 +3462,14 @@ static void cx_auto_turn_eapd(struct hda_codec *codec, int num_pins,
 static void do_automute(struct hda_codec *codec, int num_pins,
 			hda_nid_t *pins, bool on)
 {
+	struct conexant_spec *spec = codec->spec;
 	int i;
 	for (i = 0; i < num_pins; i++)
 		snd_hda_codec_write(codec, pins[i], 0,
 				    AC_VERB_SET_PIN_WIDGET_CONTROL,
 				    on ? PIN_OUT : 0);
-	cx_auto_turn_eapd(codec, num_pins, pins, on);
+	if (spec->pin_eapd_ctrls)
+		cx_auto_turn_eapd(codec, num_pins, pins, on);
 }
 
 static int detect_jacks(struct hda_codec *codec, int num_pins, hda_nid_t *pins)
@@ -3492,9 +3494,12 @@ static void cx_auto_update_speakers(struct hda_codec *codec)
 	int on = 1;
 
 	/* turn on HP EAPD when HP jacks are present */
-	if (spec->auto_mute)
-		on = spec->hp_present;
-	cx_auto_turn_eapd(codec, cfg->hp_outs, cfg->hp_pins, on);
+	if (spec->pin_eapd_ctrls) {
+		if (spec->auto_mute)
+			on = spec->hp_present;
+		cx_auto_turn_eapd(codec, cfg->hp_outs, cfg->hp_pins, on);
+	}
+
 	/* mute speakers in auto-mode if HP or LO jacks are plugged */
 	if (spec->auto_mute)
 		on = !(spec->hp_present ||

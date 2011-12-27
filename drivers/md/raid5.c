@@ -3373,7 +3373,7 @@ static void handle_stripe6(struct stripe_head *sh)
 			/* Not in-sync */;
 		else if (test_bit(In_sync, &rdev->flags))
 			set_bit(R5_Insync, &dev->flags);
-		else if (!test_bit(Faulty, &rdev->flags)) {
+		else {
 			/* in sync if before recovery_offset */
 			if (sh->sector + STRIPE_SECTORS <= rdev->recovery_offset)
 				set_bit(R5_Insync, &dev->flags);
