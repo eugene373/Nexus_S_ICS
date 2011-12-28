@@ -15,7 +15,7 @@
 #include <linux/earlysuspend.h>
 #include <linux/mutex.h>
 
-static bool bld_enabled = false;
+static bool bld_enabled = true;
 
 static bool backlight_dimmed = false;
 
