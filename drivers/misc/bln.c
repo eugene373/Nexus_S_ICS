@@ -23,7 +23,7 @@ static bool bln_ongoing = false; /* ongoing LED Notification */
 static int bln_blink_state = 0;
 static bool bln_suspended = false; /* is system suspended */
 static struct bln_implementation *bln_imp = NULL;
-static bool in_kernel_blink = false;
+static bool in_kernel_blink = true;
 static uint32_t blink_count;
 
 static struct wake_lock bln_wake_lock;
@@ -34,7 +34,7 @@ static struct timer_list blink_timer =
 static void blink_callback(struct work_struct *blink_work);
 static DECLARE_WORK(blink_work, blink_callback);
 
-#define BLINK_INTERVAL 500 /* on / off every 500ms */
+#define BLINK_INTERVAL 750 /* on / off every 750ms */
 #define MAX_BLINK_COUNT 600 /* 10 minutes */
 #define BACKLIGHTNOTIFICATION_VERSION 9
 

@@ -27,11 +27,19 @@
 #include <mach/cpu-freq-v210.h>
 #include <mach/voltages.h>
 
+#include <plat/cpu-freq.h>
+#include <plat/clock.h>
+#include <plat/gpio-cfg.h>
+#include <plat/regs-fb.h>
+#include <plat/pm.h>
+
 static struct clk *cpu_clk;
 static struct clk *dmc0_clk;
 static struct clk *dmc1_clk;
 static struct cpufreq_freqs freqs;
 static DEFINE_MUTEX(set_freq_lock);
+
+struct s3c_cpufreq_freqs s3c_freqs;
 
 /* APLL M,P,S values for 1.3GHz/1.2GHz/1.0GHz/800MHz */
 #define APLL_VAL_1300   ((1 << 31) | (325 << 16) | (6 << 8) | 1)
@@ -65,13 +73,13 @@ struct dram_conf {
 static struct dram_conf s5pv210_dram_conf[2];
 
 enum perf_level {
-	L0 = 0, 
+	L0 = 0,
 	L1,
-	L2, 
-	L3, 
-	L4, 
-	L5, 
-	L6
+	L2,
+	L3,
+	L4,
+	L5,
+	L6, 
 };
 
 enum s5pv210_mem_type {
@@ -178,6 +186,86 @@ static u32 clkdiv_val[8][11] = {
 
 	/* L6 : [100/100/100][83/83][66/66][100/100] */
 	{7, 7, 0, 0, 7, 0, 9, 0, 7, 0, 0},
+};
+
+static struct s3c_freq clk_info[] = {
+	[L0] = {	/* L1: 1.3GHz */
+		.fclk       = 1300000,
+		.armclk     = 1300000,
+		.hclk_tns   = 0,
+		.hclk       = 133000,
+		.pclk       = 66000,
+		.hclk_msys  = 216667,
+		.pclk_msys  = 100000,
+		.hclk_dsys  = 166750,
+		.pclk_dsys  = 83375,
+	},
+	[L1] = {	/* L2: 1.2GHz */
+		.fclk       = 1200000,
+		.armclk     = 1200000,
+		.hclk_tns   = 0,
+		.hclk       = 133000,
+		.pclk       = 66000,
+		.hclk_msys  = 200000,
+		.pclk_msys  = 100000,
+		.hclk_dsys  = 166750,
+		.pclk_dsys  = 83375,
+	},
+	[L2] = {	/* L1: 1GHz */
+		.fclk       = 1000000,
+		.armclk     = 1000000,
+		.hclk_tns   = 0,
+		.hclk       = 133000,
+		.pclk       = 66000,
+		.hclk_msys  = 200000,
+		.pclk_msys  = 100000,
+		.hclk_dsys  = 166750,
+		.pclk_dsys  = 83375,
+	},
+	[L3] = {	/* L2: 800MHz */
+		.fclk       = 800000,
+		.armclk     = 800000,
+		.hclk_tns   = 0,
+		.hclk       = 133000,
+		.pclk       = 66000,
+		.hclk_msys  = 200000,
+		.pclk_msys  = 100000,
+		.hclk_dsys  = 166750,
+		.pclk_dsys  = 83375,
+	},
+	[L4] = {	/* L4: 400MHz */
+		.fclk       = 800000,
+		.armclk     = 400000,
+		.hclk_tns   = 0,
+		.hclk       = 133000,
+		.pclk       = 66000,
+		.hclk_msys  = 200000,
+		.pclk_msys  = 100000,
+		.hclk_dsys  = 166750,
+		.pclk_dsys  = 83375,
+	},
+	[L5] = {	/* L5: 200MHz */
+		.fclk       = 800000,
+		.armclk     = 200000,
+		.hclk_tns   = 0,
+		.hclk       = 133000,
+		.pclk       = 66000,
+		.hclk_msys  = 200000,
+		.pclk_msys  = 100000,
+		.hclk_dsys  = 166750,
+		.pclk_dsys  = 83375,
+	},
+	[L6] = {	/* L6: 100MHz */
+		.fclk       = 800000,
+		.armclk     = 100000,
+		.hclk_tns   = 0,
+		.hclk       = 66000,
+		.pclk       = 66000,
+		.hclk_msys  = 100000,
+		.pclk_msys  = 100000,
+		.hclk_dsys  = 83375,
+		.pclk_dsys  = 83375,
+	},
 };
 
 #ifdef CONFIG_LIVE_OC
