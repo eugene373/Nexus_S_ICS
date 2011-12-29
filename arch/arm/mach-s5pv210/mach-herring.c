@@ -296,12 +296,7 @@ static struct s3cfb_lcd s6e63m0 = {
 	.p_width = 52,
 	.p_height = 86,
 	.bpp = 24,
-#ifdef CONFIG_FB_S3C_INCREASED_HZ
 	.freq = 72,
-#else
-	.freq = 60,
-#endif
-
 	.timing = {
 		.h_fp = 16,
 		.h_bp = 16,
@@ -326,19 +321,7 @@ static struct s3cfb_lcd nt35580 = {
 	.p_width = 52,
 	.p_height = 86,
 	.bpp = 24,
-#ifdef CONFIG_FB_S3C_INCREASED_HZ
 	.freq = 72,
-	.timing = {
-               .h_fp = 16,
-	       .h_bp = 16,
-	       .h_sw = 2,
-	       .v_fp = 28,
-	       .v_fpe = 1,
-	       .v_bp = 1,
-	       .v_bpe = 1,
-	       .v_sw = 2,
-#else
-	.freq = 60,
 	.timing = {
 		.h_fp = 10,
 		.h_bp = 20,
@@ -348,7 +331,6 @@ static struct s3cfb_lcd nt35580 = {
 		.v_bp = 8,
 		.v_bpe = 1,
 		.v_sw = 2,
-#endif
 	},
 	.polarity = {
 		.rise_vclk = 1,
@@ -364,11 +346,7 @@ static struct s3cfb_lcd r61408 = {
 	.p_width = 52,
 	.p_height = 86,
 	.bpp = 24,
-#ifdef CONFIG_FB_S3C_INCREASED_HZ
-	.freq = 72,
-#else
-	.freq = 60,
-#endif
+	.freq = 70,
 	.timing = {
 		.h_fp = 100,
 		.h_bp = 2,
@@ -460,14 +438,6 @@ static struct s5p_media_device herring_media_devs[] = {
 #ifdef CONFIG_CPU_FREQ
 static struct s5pv210_cpufreq_voltage smdkc110_cpufreq_volt[] = {
 	{
-		.freq	= 1500000,
-		.varm	= DVSARM01,
-		.vint	= DVSINT0,
-	}, {
-		.freq	= 1400000,
-		.varm	= DVSARM02,
-		.vint	= DVSINT0,
-	}, {
 		.freq	= 1300000,
 		.varm	= DVSARM1,
 		.vint	= DVSINT0,
@@ -749,7 +719,7 @@ static struct regulator_init_data herring_buck1_data = {
 	.constraints	= {
 		.name		= "VDD_ARM",
 		.min_uV		= 750000,
-		.max_uV		= 1600000,
+		.max_uV		= 1500000,
 		.apply_uV	= 1,
 		.valid_ops_mask	= REGULATOR_CHANGE_VOLTAGE |
 				  REGULATOR_CHANGE_STATUS,
@@ -767,7 +737,7 @@ static struct regulator_init_data herring_buck2_data = {
 	.constraints	= {
 		.name		= "VDD_INT",
 		.min_uV		= 750000,
-		.max_uV		= 1600000,
+		.max_uV		= 1500000,
 		.apply_uV	= 1,
 		.valid_ops_mask	= REGULATOR_CHANGE_VOLTAGE |
 				  REGULATOR_CHANGE_STATUS,

@@ -13,23 +13,15 @@
 #define __ASM_ARCH_VOLTAGES_H
 
 #ifdef CONFIG_CUSTOM_VOLTAGE
-#define ARMVOLT 1600000
-#define INTVOLT 1300000
+#define ARMVOLT 1500000
+#define INTVOLT 1250000
 #else
-#define ARMVOLT 1600000
-#define INTVOLT 1300000
+#define ARMVOLT 1500000
+#define INTVOLT 1250000
 #endif
 
-#define VDDARM  1525000
+#define VDDARM  1425000
 #define VDDINT  1200000
-
-/* 1500Mhz */
-#define DVSARM01 1525000
-/* 1500Mhz */
-
-/* 1400Mhz */
-#define DVSARM02 1500000
-/* 1400Mhz */
 
 
 /* 1300Mhz to 100Mhz Config */
