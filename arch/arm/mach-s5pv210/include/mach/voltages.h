@@ -20,7 +20,7 @@
 #define INTVOLT 1250000
 #endif
 
-#define VDDARM  1425000
+#define VDDARM  1450000
 #define VDDINT  1200000
 
 

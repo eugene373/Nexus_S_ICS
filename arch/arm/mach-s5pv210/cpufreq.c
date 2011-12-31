@@ -42,6 +42,9 @@ static DEFINE_MUTEX(set_freq_lock);
 struct s3c_cpufreq_freqs s3c_freqs;
 
 /* APLL M,P,S values for 1.3GHz/1.2GHz/1.0GHz/800MHz */
+#define APLL_VAL_1600   ((1 << 31) | (200 << 16) | (3 << 8) | 1)
+#define APLL_VAL_1500   ((1 << 31) | (193 << 16) | (3 << 8) | 1)
+#define APLL_VAL_1400   ((1 << 31) | (180 << 16) | (3 << 8) | 1)
 #define APLL_VAL_1300   ((1 << 31) | (325 << 16) | (6 << 8) | 1)
 #define APLL_VAL_1200	((1 << 31) | (150 << 16) | (3 << 8) | 1)
 #define APLL_VAL_1100   ((1 << 31) | (275 << 16) | (6 << 8) | 1)
@@ -207,7 +210,7 @@ static struct s3c_freq clk_info[] = {
 		.hclk_tns   = 0,
 		.hclk       = 133000,
 		.pclk       = 66000,
-		.hclk_msys  = 216667,
+		.hclk_msys  = 200000,
 		.pclk_msys  = 100000,
 		.hclk_dsys  = 166750,
 		.pclk_dsys  = 83375,
@@ -218,7 +221,7 @@ static struct s3c_freq clk_info[] = {
 		.hclk_tns   = 0,
 		.hclk       = 133000,
 		.pclk       = 66000,
-		.hclk_msys  = 216667,
+		.hclk_msys  = 200000,
 		.pclk_msys  = 100000,
 		.hclk_dsys  = 166750,
 		.pclk_dsys  = 83375,
