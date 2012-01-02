@@ -607,17 +607,36 @@ config GENERIC_BLN
          Say Y here to enable the backlight notification
          for android led-notification (modified liblight needed)
 
+config GENERIC_BLN_DEFAULT_ENABLED
+      bool "Enable BLN by default"
+      depends on GENERIC_BLN
+      default y
+
+config GENERIC_BLN_DEFAULT_BLINKING
+      bool "Enable BLN blinking by default"
+      depends on GENERIC_BLN
+      default y
+
 config BLD
        bool "Support for Backlight Dimmer"
        default y
        help
          Say Y here to enable Backlight Dimmer
 
+config BLD_DEFAULT_ENABLED
+      depends on BLD
+      bool "Enable BLD by default"
+      default y
+
 config TOUCH_WAKE
        bool "Support for Touch Wake"
        default y
        help
          Say Y here to enable Touch Wake
+
+config TOUCH_WAKE_DEFAULT_ENABLED
+      bool "Enable Touch Wake by default"
+      depends on TOUCH_WAKE
 
 config LIVE_OC
        bool "Support for Live OC"
