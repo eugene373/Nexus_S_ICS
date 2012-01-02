@@ -18,9 +18,18 @@
 #include <linux/timer.h>
 #include <linux/wakelock.h>
 
+#ifdef CONFIG_GENERIC_BLN_DEFAULT_ENABLED
 static bool bln_enabled = true; /* is BLN function is enabled */
-static bool bln_ongoing = false; /* ongoing LED Notification */
+#else
+static bool bln_enabled = false; /* is BLN function is enabled */
+#endif
+#ifdef CONFIG_GENERIC_BLN_DEFAULT_BLINKING
+static bool bln_ongoing = true; /* ongoing LED Notification */
 static int bln_blink_state = 1;
+#else
+static bool bln_ongoing = false; /* ongoing LED Notification */
+static int bln_blink_state = 0;
+#endif
 static bool bln_suspended = false; /* is system suspended */
 static struct bln_implementation *bln_imp = NULL;
 static bool in_kernel_blink = true;
