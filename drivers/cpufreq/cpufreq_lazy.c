@@ -35,6 +35,7 @@
 
 #define DEF_FREQUENCY_DOWN_DIFFERENTIAL		(10)
 #define DEF_FREQUENCY_UP_THRESHOLD		(80)
+#define DEF_SAMPLE_RATE				(15000)
 #define MICRO_FREQUENCY_DOWN_DIFFERENTIAL	(3)
 #define MICRO_FREQUENCY_UP_THRESHOLD		(90)
 #define MICRO_FREQUENCY_MIN_SAMPLE_RATE		(10000)
@@ -101,12 +102,9 @@ static DEFINE_PER_CPU(struct cpu_dbs_info_s, od_cpu_dbs_info);
 static unsigned int dbs_enable;	/* number of CPUs using this policy */
 
 /*
- * dbs_mutex protects data in dbs_tuners_ins from concurrent changes on
- * different CPUs. It protects dbs_enable in governor start/stop.
+ * dbs_mutex protects protects dbs_enable in governor start/stop.
  */
 static DEFINE_MUTEX(dbs_mutex);
-
-static struct workqueue_struct	*klazy_wq;
 
 static struct dbs_tuners {
     unsigned int sampling_rate;
@@ -268,21 +266,12 @@ static void lazy_powersave_bias_init(void)
 
 /************************** sysfs interface ************************/
 
-static ssize_t show_sampling_rate_max(struct kobject *kobj,
-				      struct attribute *attr, char *buf)
-{
-    printk_once(KERN_INFO "CPUFREQ: lazy sampling_rate_max "
-		"sysfs file is deprecated - used by: %s\n", current->comm);
-    return sprintf(buf, "%u\n", -1U);
-}
-
 static ssize_t show_sampling_rate_min(struct kobject *kobj,
 				      struct attribute *attr, char *buf)
 {
     return sprintf(buf, "%u\n", min_sampling_rate);
 }
 
-define_one_global_ro(sampling_rate_max);
 define_one_global_ro(sampling_rate_min);
 
 /* cpufreq_lazy Governor Tunables */
@@ -302,36 +291,6 @@ show_one(min_timeinstate, min_timeinstate);
 show_one(screenoff_maxfreq, screenoff_maxfreq);
 #endif
 
-/*** delete after deprecation time ***/
-
-#define DEPRECATION_MSG(file_name)				\
-    printk_once(KERN_INFO "CPUFREQ: Per core lazy sysfs "	\
-		"interface is deprecated - " #file_name "\n");
-
-#define show_one_old(file_name)						\
-    static ssize_t show_##file_name##_old				\
-    (struct cpufreq_policy *unused, char *buf)				\
-    {									\
-	printk_once(KERN_INFO "CPUFREQ: Per core lazy sysfs "	\
-		    "interface is deprecated - " #file_name "\n");	\
-	return show_##file_name(NULL, NULL, buf);			\
-    }
-show_one_old(sampling_rate);
-show_one_old(up_threshold);
-show_one_old(ignore_nice_load);
-show_one_old(powersave_bias);
-show_one_old(sampling_rate_min);
-show_one_old(sampling_rate_max);
-show_one_old(min_timeinstate);
-#ifdef CONFIG_HAS_EARLYSUSPEND
-show_one_old(screenoff_maxfreq);
-#endif
-
-cpufreq_freq_attr_ro_old(sampling_rate_min);
-cpufreq_freq_attr_ro_old(sampling_rate_max);
-
-/*** delete after deprecation time ***/
-
 static ssize_t store_sampling_rate(struct kobject *a, struct attribute *b,
 				   const char *buf, size_t count)
 {
@@ -340,11 +299,7 @@ static ssize_t store_sampling_rate(struct kobject *a, struct attribute *b,
     ret = sscanf(buf, "%u", &input);
     if (ret != 1)
 	return -EINVAL;
-
-    mutex_lock(&dbs_mutex);
     dbs_tuners_ins.sampling_rate = max(input, min_sampling_rate);
-    mutex_unlock(&dbs_mutex);
-
     return count;
 }
 
@@ -357,11 +312,7 @@ static ssize_t store_io_is_busy(struct kobject *a, struct attribute *b,
     ret = sscanf(buf, "%u", &input);
     if (ret != 1)
 	return -EINVAL;
-
-    mutex_lock(&dbs_mutex);
     dbs_tuners_ins.io_is_busy = !!input;
-    mutex_unlock(&dbs_mutex);
-
     return count;
 }
 
@@ -376,11 +327,7 @@ static ssize_t store_up_threshold(struct kobject *a, struct attribute *b,
 	input < MIN_FREQUENCY_UP_THRESHOLD) {
 	return -EINVAL;
     }
-
-    mutex_lock(&dbs_mutex);
     dbs_tuners_ins.up_threshold = input;
-    mutex_unlock(&dbs_mutex);
-
     return count;
 }
 
@@ -399,7 +346,6 @@ static ssize_t store_ignore_nice_load(struct kobject *a, struct attribute *b,
     if (input > 1)
 	input = 1;
 
-    mutex_lock(&dbs_mutex);
     if (input == dbs_tuners_ins.ignore_nice) { /* nothing to do */
 	mutex_unlock(&dbs_mutex);
 	return count;
@@ -416,8 +362,6 @@ static ssize_t store_ignore_nice_load(struct kobject *a, struct attribute *b,
 	    dbs_info->prev_cpu_nice = kstat_cpu(j).cpustat.nice;
 
     }
-    mutex_unlock(&dbs_mutex);
-
     return count;
 }
 
@@ -434,11 +378,8 @@ static ssize_t store_powersave_bias(struct kobject *a, struct attribute *b,
     if (input > 1000)
 	input = 1000;
 
-    mutex_lock(&dbs_mutex);
     dbs_tuners_ins.powersave_bias = input;
     lazy_powersave_bias_init();
-    mutex_unlock(&dbs_mutex);
-
     return count;
 }
 
@@ -450,11 +391,7 @@ static ssize_t store_min_timeinstate(struct kobject *a, struct attribute *b,
     ret = sscanf(buf, "%u", &input);
     if (ret != 1)
 	return -EINVAL;
-
-    mutex_lock(&dbs_mutex);
     dbs_tuners_ins.min_timeinstate = max(input, min_sampling_rate);
-    mutex_unlock(&dbs_mutex);
-
     return count;
 }
 
@@ -467,11 +404,7 @@ static ssize_t store_screenoff_maxfreq(struct kobject *a, struct attribute *b,
     ret = sscanf(buf, "%u", &input);
     if (ret != 1 || input > 1)
 	return -EINVAL;
-
-    mutex_lock(&dbs_mutex);
     dbs_tuners_ins.screenoff_maxfreq = input;
-    mutex_unlock(&dbs_mutex);
-
     return count;
 }
 #endif
@@ -487,7 +420,6 @@ define_one_global_rw(screenoff_maxfreq);
 #endif
 
 static struct attribute *dbs_attributes[] = {
-    &sampling_rate_max.attr,
     &sampling_rate_min.attr,
     &sampling_rate.attr,
     &up_threshold.attr,
@@ -505,55 +437,6 @@ static struct attribute_group dbs_attr_group = {
     .attrs = dbs_attributes,
     .name = "lazy",
 };
-
-/*** delete after deprecation time ***/
-
-#define write_one_old(file_name)					\
-    static ssize_t store_##file_name##_old				\
-    (struct cpufreq_policy *unused, const char *buf, size_t count)	\
-    {									\
-	printk_once(KERN_INFO "CPUFREQ: Per core lazy sysfs "	\
-		    "interface is deprecated - " #file_name "\n");	\
-	return store_##file_name(NULL, NULL, buf, count);		\
-    }
-write_one_old(sampling_rate);
-write_one_old(up_threshold);
-write_one_old(ignore_nice_load);
-write_one_old(powersave_bias);
-write_one_old(min_timeinstate);
-#ifdef CONFIG_HAS_EARLYSUSPEND
-write_one_old(screenoff_maxfreq);
-#endif
-
-cpufreq_freq_attr_rw_old(sampling_rate);
-cpufreq_freq_attr_rw_old(up_threshold);
-cpufreq_freq_attr_rw_old(ignore_nice_load);
-cpufreq_freq_attr_rw_old(powersave_bias);
-cpufreq_freq_attr_rw_old(min_timeinstate);
-#ifdef CONFIG_HAS_EARLYSUSPEND
-cpufreq_freq_attr_rw_old(screenoff_maxfreq);
-#endif
-
-static struct attribute *dbs_attributes_old[] = {
-    &sampling_rate_max_old.attr,
-    &sampling_rate_min_old.attr,
-    &sampling_rate_old.attr,
-    &up_threshold_old.attr,
-    &ignore_nice_load_old.attr,
-    &powersave_bias_old.attr,
-    &min_timeinstate_old.attr,
-#ifdef CONFIG_HAS_EARLYSUSPEND
-    &screenoff_maxfreq_old.attr,
-#endif
-    NULL
-};
-
-static struct attribute_group dbs_attr_group_old = {
-    .attrs = dbs_attributes_old,
-    .name = "lazy",
-};
-
-/*** delete after deprecation time ***/
 
 /************************** sysfs end ************************/
 
@@ -753,7 +636,7 @@ static void do_dbs_timer(struct work_struct *work)
 	if (num_online_cpus() > 1)
 	    delay -= jiffies % delay;
     }
-    queue_delayed_work_on(cpu, klazy_wq, &dbs_info->work, delay);
+    schedule_delayed_work_on(cpu, &dbs_info->work, delay);
     mutex_unlock(&dbs_info->timer_mutex);
 }
 
@@ -765,8 +648,7 @@ static inline void dbs_timer_init(struct cpu_dbs_info_s *dbs_info)
 
     dbs_info->sample_type = DBS_NORMAL_SAMPLE;
     INIT_DELAYED_WORK_DEFERRABLE(&dbs_info->work, do_dbs_timer);
-    queue_delayed_work_on(dbs_info->cpu, klazy_wq, &dbs_info->work,
-			  delay);
+    schedule_delayed_work_on(dbs_info->cpu, &dbs_info->work, delay);
 }
 
 static inline void dbs_timer_exit(struct cpu_dbs_info_s *dbs_info)
@@ -814,12 +696,6 @@ static int cpufreq_governor_dbs(struct cpufreq_policy *policy,
 
 	mutex_lock(&dbs_mutex);
 
-	rc = sysfs_create_group(&policy->kobj, &dbs_attr_group_old);
-	if (rc) {
-	    mutex_unlock(&dbs_mutex);
-	    return rc;
-	}
-
 	dbs_enable++;
 	for_each_cpu(j, policy->cpus) {
 	    struct cpu_dbs_info_s *j_dbs_info;
@@ -856,7 +732,7 @@ static int cpufreq_governor_dbs(struct cpufreq_policy *policy,
 	    /* Bring kernel and HW constraints together */
 	    min_sampling_rate = max(min_sampling_rate,
 				    MIN_LATENCY_MULTIPLIER * latency);
-	    dbs_tuners_ins.sampling_rate = min_sampling_rate;
+	    dbs_tuners_ins.sampling_rate = max(min_sampling_rate, DEF_SAMPLE_RATE);
 	    current_sampling_rate = dbs_tuners_ins.sampling_rate;
 	    dbs_tuners_ins.min_timeinstate = latency * LATENCY_MULTIPLIER;
 	    dbs_tuners_ins.io_is_busy = should_io_be_busy();
@@ -871,7 +747,6 @@ static int cpufreq_governor_dbs(struct cpufreq_policy *policy,
 	dbs_timer_exit(this_dbs_info);
 
 	mutex_lock(&dbs_mutex);
-	sysfs_remove_group(&policy->kobj, &dbs_attr_group_old);
 	mutex_destroy(&this_dbs_info->timer_mutex);
 	dbs_enable--;
 	mutex_unlock(&dbs_mutex);
@@ -897,7 +772,6 @@ static int cpufreq_governor_dbs(struct cpufreq_policy *policy,
 
 static int __init cpufreq_gov_dbs_init(void)
 {
-    int err;
     cputime64_t wall;
     u64 idle_time;
     int cpu = get_cpu();
@@ -921,26 +795,16 @@ static int __init cpufreq_gov_dbs_init(void)
 	    MIN_SAMPLING_RATE_RATIO * jiffies_to_usecs(10);
     }
 
-    klazy_wq = create_workqueue("klazy");
-    if (!klazy_wq) {
-	printk(KERN_ERR "Creation of klazy failed\n");
-	return -EFAULT;
-    }
-    err = cpufreq_register_governor(&cpufreq_gov_lazy);
-    if (err)
-	destroy_workqueue(klazy_wq);
-
 #ifdef CONFIG_HAS_EARLYSUSPEND
     register_early_suspend(&lazy_suspend);
 #endif
 
-    return err;
+    return cpufreq_register_governor(&cpufreq_gov_lazy);
 }
 
 static void __exit cpufreq_gov_dbs_exit(void)
 {
     cpufreq_unregister_governor(&cpufreq_gov_lazy);
-    destroy_workqueue(klazy_wq);
 }
 
 

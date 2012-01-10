@@ -21,7 +21,11 @@
 extern void touchscreen_enable(void);
 extern void touchscreen_disable(void);
 
+#ifdef CONFIG_TOUCH_WAKE_DEFAULT_ENABLED
+static bool touchwake_enabled = true;
+#else
 static bool touchwake_enabled = false;
+#endif
 
 static bool touch_disabled = false;
 
