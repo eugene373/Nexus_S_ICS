@@ -20,11 +20,10 @@
 
 #ifdef CONFIG_GENERIC_BLN_DEFAULT_ENABLED
 static bool bln_enabled = true; /* is BLN function is enabled */
-static int bln_blink_state = 1;
 #else
 static bool bln_enabled = false; /* is BLN function is enabled */
-static int bln_blink_state = 0;
 #endif
+static int bln_blink_state = 0;
 static bool bln_ongoing = false; /* ongoing LED Notification */
 static bool bln_suspended = false; /* is system suspended */
 static struct bln_implementation *bln_imp = NULL;
@@ -43,8 +42,8 @@ static struct timer_list blink_timer =
 static void blink_callback(struct work_struct *blink_work);
 static DECLARE_WORK(blink_work, blink_callback);
 
-static uint32_t blink_interval = 750;  /* on / off every 750ms */
-static uint32_t max_blink_count = 750;  /* 10 minutes */
+#define BLINK_INTERVAL 750 /* on / off every 750ms */
+#define MAX_BLINK_COUNT 600 /* 10 minutes */
 #define BACKLIGHTNOTIFICATION_VERSION 9
 
 static void bln_enable_backlights(void)
@@ -85,8 +84,8 @@ static void enable_led_notification(void)
 
 		/* Start timer */
 		blink_timer.expires = jiffies +
-				msecs_to_jiffies(blink_interval);
-		blink_count = max_blink_count;
+				msecs_to_jiffies(BLINK_INTERVAL);
+		blink_count = MAX_BLINK_COUNT;
 		add_timer(&blink_timer);
 	}
 
@@ -174,44 +173,6 @@ static ssize_t in_kernel_blink_status_read(struct device *dev,
 	return sprintf(buf,"%u\n", (in_kernel_blink ? 1 : 0));
 }
 
-static ssize_t blink_interval_status_read(struct device *dev,
-    struct device_attribute *attr, char *buf)
-{
-  return sprintf(buf,"%u\n", blink_interval);
-}
-
-static ssize_t blink_interval_status_write(struct device *dev,
-    struct device_attribute *attr, const char *buf, size_t size)
-{
-  unsigned int data;
-
-  if (sscanf(buf, "%u\n", &data) == 1)
-    blink_interval = data;
-  else
-    pr_info("%s: input error\n", __FUNCTION__);
-
-  return size;
-}
-
-static ssize_t max_blink_count_status_read(struct device *dev,
-    struct device_attribute *attr, char *buf)
-{
-  return sprintf(buf,"%u\n", max_blink_count);
-}
-
-static ssize_t max_blink_count_status_write(struct device *dev,
-    struct device_attribute *attr, const char *buf, size_t size)
-{
-  unsigned int data;
-
-  if (sscanf(buf, "%u\n", &data) == 1)
-    max_blink_count = data;
-  else
-    pr_info("%s: input error\n", __FUNCTION__);
-
-  return size;
-}
-
 static ssize_t in_kernel_blink_status_write(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t size)
 {
@@ -272,12 +233,6 @@ static DEVICE_ATTR(notification_led, S_IRUGO | S_IWUGO,
 static DEVICE_ATTR(in_kernel_blink, S_IRUGO | S_IWUGO,
 		in_kernel_blink_status_read,
 		in_kernel_blink_status_write);
-static DEVICE_ATTR(blink_interval, S_IRUGO | S_IWUGO,
-		blink_interval_status_read,
-		blink_interval_status_write);
-static DEVICE_ATTR(max_blink_count, S_IRUGO | S_IWUGO,
-		max_blink_count_status_read,
-		max_blink_count_status_write);
 static DEVICE_ATTR(version, S_IRUGO , backlightnotification_version, NULL);
 
 static struct attribute *bln_notification_attributes[] = {
@@ -285,8 +240,6 @@ static struct attribute *bln_notification_attributes[] = {
 	&dev_attr_enabled.attr,
 	&dev_attr_notification_led.attr,
 	&dev_attr_in_kernel_blink.attr,
-	&dev_attr_blink_interval.attr,
-	&dev_attr_max_blink_count.attr,
 	&dev_attr_version.attr,
 	NULL
 };
@@ -334,7 +287,7 @@ static void blink_callback(struct work_struct *blink_work)
 void bl_timer_callback(unsigned long data)
 {
 	schedule_work(&blink_work);
-	mod_timer(&blink_timer, jiffies + msecs_to_jiffies(blink_interval));
+	mod_timer(&blink_timer, jiffies + msecs_to_jiffies(BLINK_INTERVAL));
 }
 
 static int __init bln_control_init(void)
