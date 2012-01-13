@@ -1866,6 +1866,15 @@ EXPORT_SYMBOL(transport_init_se_cmd);
 
 static int transport_check_alloc_task_attr(struct se_cmd *cmd)
 {
+	unsigned long flags;
+
+	spin_lock_irqsave(&cmd->t_state_lock, flags);
+	if (cmd->se_cmd_flags & SCF_SENT_CHECK_CONDITION) {
+		spin_unlock_irqrestore(&cmd->t_state_lock, flags);
+		return;
+	}
+	spin_unlock_irqrestore(&cmd->t_state_lock, flags);
+
 	/*
 	 * Check if SAM Task Attribute emulation is enabled for this
 	 * struct se_device storage object

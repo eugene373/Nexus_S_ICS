@@ -162,6 +162,7 @@ static void qeth_l3_convert_addr_to_bits(u8 *addr, u8 *bits, int len)
 			octet >>= 1;
 		}
 	}
+	rcu_read_unlock();
 }
 
 int qeth_l3_is_addr_covered_by_ipato(struct qeth_card *card,
