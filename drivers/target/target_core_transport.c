@@ -2023,6 +2023,15 @@ EXPORT_SYMBOL(transport_generic_handle_cdb_map);
 int transport_generic_handle_data(
 	struct se_cmd *cmd)
 {
+	unsigned long flags;
+
+	spin_lock_irqsave(&cmd->t_state_lock, flags);
+	if (cmd->se_cmd_flags & SCF_SENT_CHECK_CONDITION) {
+		spin_unlock_irqrestore(&cmd->t_state_lock, flags);
+		return;
+	}
+	spin_unlock_irqrestore(&cmd->t_state_lock, flags);
+
 	/*
 	 * For the software fabric case, then we assume the nexus is being
 	 * failed/shutdown when signals are pending from the kthread context

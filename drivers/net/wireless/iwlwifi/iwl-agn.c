@@ -2958,6 +2958,17 @@ static void iwlagn_configure_filter(struct ieee80211_hw *hw,
 		break;
 	}
 
+	switch (key->cipher) {
+	case WLAN_CIPHER_SUITE_TKIP:
+		key->flags |= IEEE80211_KEY_FLAG_GENERATE_MMIC;
+		/* fall through */
+	case WLAN_CIPHER_SUITE_CCMP:
+		key->flags |= IEEE80211_KEY_FLAG_GENERATE_IV;
+		break;
+	default:
+		break;
+	}
+
 	/*
 	 * Receiving all multicast frames is always enabled by the
 	 * default flags setup in iwl_connection_init_rx_config()

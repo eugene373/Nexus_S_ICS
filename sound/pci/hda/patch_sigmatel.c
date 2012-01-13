@@ -94,6 +94,7 @@ enum {
 	STAC_92HD83XXX_REF,
 	STAC_92HD83XXX_PWR_REF,
 	STAC_DELL_S14,
+	STAC_DELL_VOSTRO_3500,
 	STAC_92HD83XXX_HP,
 	STAC_HP_DV7_4000,
 	STAC_92HD83XXX_MODELS
@@ -1628,6 +1629,12 @@ static const unsigned int dell_s14_pin_configs[10] = {
 	0x40f000f0, 0x40f000f0,
 };
 
+static const unsigned int dell_vostro_3500_pin_configs[10] = {
+	0x02a11020, 0x0221101f, 0x400000f0, 0x90170110,
+	0x400000f1, 0x400000f2, 0x400000f3, 0x90a60160,
+	0x400000f4, 0x400000f5,
+};
+
 static const unsigned int hp_dv7_4000_pin_configs[10] = {
 	0x03a12050, 0x0321201f, 0x40f000f0, 0x90170110,
 	0x40f000f0, 0x40f000f0, 0x90170110, 0xd5a30140,
@@ -1646,6 +1653,7 @@ static const char * const stac92hd83xxx_models[STAC_92HD83XXX_MODELS] = {
 	[STAC_92HD83XXX_REF] = "ref",
 	[STAC_92HD83XXX_PWR_REF] = "mic-ref",
 	[STAC_DELL_S14] = "dell-s14",
+	[STAC_DELL_VOSTRO_3500] = "dell-vostro-3500",
 	[STAC_92HD83XXX_HP] = "hp",
 	[STAC_HP_DV7_4000] = "hp-dv7-4000",
 };
@@ -1658,6 +1666,8 @@ static const struct snd_pci_quirk stac92hd83xxx_cfg_tbl[] = {
 		      "DFI LanParty", STAC_92HD83XXX_REF),
 	SND_PCI_QUIRK(PCI_VENDOR_ID_DELL, 0x02ba,
 		      "unknown Dell", STAC_DELL_S14),
+	SND_PCI_QUIRK(PCI_VENDOR_ID_DELL, 0x1028,
+		      "Dell Vostro 3500", STAC_DELL_VOSTRO_3500),
 	SND_PCI_QUIRK_MASK(PCI_VENDOR_ID_HP, 0xff00, 0x3600,
 		      "HP", STAC_92HD83XXX_HP),
 	{} /* terminator */
@@ -4228,12 +4238,10 @@ static void stac_store_hints(struct hda_codec *codec)
 		spec->eapd_switch = val;
 	get_int_hint(codec, "gpio_led_polarity", &spec->gpio_led_polarity);
 	if (get_int_hint(codec, "gpio_led", &spec->gpio_led)) {
-		if (spec->gpio_led <= 8) {
-			spec->gpio_mask |= spec->gpio_led;
-			spec->gpio_dir |= spec->gpio_led;
-			if (spec->gpio_led_polarity)
-				spec->gpio_data |= spec->gpio_led;
-		}
+		spec->gpio_mask |= spec->gpio_led;
+		spec->gpio_dir |= spec->gpio_led;
+		if (spec->gpio_led_polarity)
+			spec->gpio_data |= spec->gpio_led;
 	}
 }
 
@@ -5427,9 +5435,7 @@ static void stac92hd8x_fill_auto_spec(struct hda_codec *codec)
 static int patch_stac92hd83xxx(struct hda_codec *codec)
 {
 	struct sigmatel_spec *spec;
-	hda_nid_t conn[STAC92HD83_DAC_COUNT + 1];
 	int err;
-	int num_dacs;
 
 	spec  = kzalloc(sizeof(*spec), GFP_KERNEL);
 	if (spec == NULL)
@@ -5469,26 +5475,8 @@ again:
 		stac92xx_set_config_regs(codec,
 				stac92hd83xxx_brd_tbl[spec->board_config]);
 
-	switch (codec->vendor_id) {
-	case 0x111d76d1:
-	case 0x111d76d9:
-	case 0x111d76df:
-	case 0x111d76e5:
-	case 0x111d7666:
-	case 0x111d7667:
-	case 0x111d7668:
-	case 0x111d7669:
-	case 0x111d76e3:
-	case 0x111d7604:
-	case 0x111d76d4:
-	case 0x111d7605:
-	case 0x111d76d5:
-	case 0x111d76e7:
-		if (spec->board_config == STAC_92HD83XXX_PWR_REF)
-			break;
+	if (spec->board_config != STAC_92HD83XXX_PWR_REF)
 		spec->num_pwrs = 0;
-		break;
-	}
 
 	codec->patch_ops = stac92xx_patch_ops;
 
@@ -5508,7 +5496,11 @@ again:
 	}
 #endif	
 
-	err = stac92xx_parse_auto_config(codec, 0x1d, 0);
+	/* 92HD65/66 series has S/PDIF-IN */
+	if (codec->vendor_id >= 0x111d76e8 && codec->vendor_id <= 0x111d76f3)
+		err = stac92xx_parse_auto_config(codec, 0x1d, 0x22);
+	else
+		err = stac92xx_parse_auto_config(codec, 0x1d, 0);
 	if (!err) {
 		if (spec->board_config < 0) {
 			printk(KERN_WARNING "hda_codec: No auto-config is "
@@ -5522,22 +5514,6 @@ again:
 	if (err < 0) {
 		stac92xx_free(codec);
 		return err;
-	}
-
-	/* docking output support */
-	num_dacs = snd_hda_get_connections(codec, 0xF,
-				conn, STAC92HD83_DAC_COUNT + 1) - 1;
-	/* skip non-DAC connections */
-	while (num_dacs >= 0 &&
-			(get_wcaps_type(get_wcaps(codec, conn[num_dacs]))
-					!= AC_WID_AUD_OUT))
-		num_dacs--;
-	/* set port E and F to select the last DAC */
-	if (num_dacs >= 0) {
-		snd_hda_codec_write_cache(codec, 0xE, 0,
-			AC_VERB_SET_CONNECT_SEL, num_dacs);
-		snd_hda_codec_write_cache(codec, 0xF, 0,
-			AC_VERB_SET_CONNECT_SEL, num_dacs);
 	}
 
 	codec->proc_widget_hook = stac92hd_proc_hook;
@@ -6407,6 +6383,18 @@ static const struct hda_codec_preset snd_hda_preset_sigmatel[] = {
 	{ .id = 0x111d76e3, .name = "92HD98BXX", .patch = patch_stac92hd83xxx},
 	{ .id = 0x111d76e5, .name = "92HD99BXX", .patch = patch_stac92hd83xxx},
 	{ .id = 0x111d76e7, .name = "92HD90BXX", .patch = patch_stac92hd83xxx},
+	{ .id = 0x111d76e8, .name = "92HD66B1X5", .patch = patch_stac92hd83xxx},
+	{ .id = 0x111d76e9, .name = "92HD66B2X5", .patch = patch_stac92hd83xxx},
+	{ .id = 0x111d76ea, .name = "92HD66B3X5", .patch = patch_stac92hd83xxx},
+	{ .id = 0x111d76eb, .name = "92HD66C1X5", .patch = patch_stac92hd83xxx},
+	{ .id = 0x111d76ec, .name = "92HD66C2X5", .patch = patch_stac92hd83xxx},
+	{ .id = 0x111d76ed, .name = "92HD66C3X5", .patch = patch_stac92hd83xxx},
+	{ .id = 0x111d76ee, .name = "92HD66B1X3", .patch = patch_stac92hd83xxx},
+	{ .id = 0x111d76ef, .name = "92HD66B2X3", .patch = patch_stac92hd83xxx},
+	{ .id = 0x111d76f0, .name = "92HD66B3X3", .patch = patch_stac92hd83xxx},
+	{ .id = 0x111d76f1, .name = "92HD66C1X3", .patch = patch_stac92hd83xxx},
+	{ .id = 0x111d76f2, .name = "92HD66C2X3", .patch = patch_stac92hd83xxx},
+	{ .id = 0x111d76f3, .name = "92HD66C3/65", .patch = patch_stac92hd83xxx},
 	{} /* terminator */
 };
 

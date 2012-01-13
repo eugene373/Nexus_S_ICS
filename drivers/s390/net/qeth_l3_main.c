@@ -2245,6 +2245,7 @@ qeth_l3_handle_promisc_mode(struct qeth_card *card)
 			qeth_diags_trace(card, QETH_DIAGS_CMD_TRACE_DISABLE);
 		}
 	}
+	rcu_read_unlock();
 }
 
 static void qeth_l3_set_multicast_list(struct net_device *dev)
