@@ -13,7 +13,7 @@
 
 #define LIVEOC_VERSION 1
 
-#define MAX_OCVALUE 110 /* Limit User Control due to coverclocking the gpu ( Eugene373 */
+#define MAX_OCVALUE 115 /* Limit User Control due to coverclocking to 1.44GHz (Eugene373) */
 
 extern void liveoc_update(unsigned int oc_value);
 
