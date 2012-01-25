@@ -35,12 +35,12 @@ config PVR_NEED_PVR_ASSERT
 config PVR_DEBUG_MEMORY
 	bool "Record memory-related debugging information"
 	depends on PVR_BUILD_DEBUG
-	default y
+	default n
 
 config PVR_DEBUG_BRIDGE_KM
 	bool "Collect bridge statistics"
 	depends on PVR_BUILD_DEBUG
-	default y
+	default n
 
 config PVR_DEBUG_TRACE_BRIDGE_KM
 	bool "Trace bridge calls"

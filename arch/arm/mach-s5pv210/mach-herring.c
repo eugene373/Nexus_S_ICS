@@ -157,10 +157,6 @@ static void gps_gpio_init(void)
 	struct device *gps_dev;
 
 	gps_dev = device_create(sec_class, NULL, 0, NULL, "gps");
-	if (IS_ERR(gps_dev)) {
-		pr_err("Failed to create device(gps)!\n");
-		goto err;
-	}
 
 	gpio_request(GPIO_GPS_nRST, "GPS_nRST");	/* XMMC3CLK */
 	s3c_gpio_setpull(GPIO_GPS_nRST, S3C_GPIO_PULL_NONE);
@@ -179,7 +175,6 @@ static void gps_gpio_init(void)
 	gpio_export_link(gps_dev, "GPS_nRST", GPIO_GPS_nRST);
 	gpio_export_link(gps_dev, "GPS_PWR_EN", GPIO_GPS_PWR_EN);
 
- err:
 	return;
 }
 
@@ -295,7 +290,7 @@ static struct s3cfb_lcd s6e63m0 = {
 	.p_width = 52,
 	.p_height = 86,
 	.bpp = 24,
-	.freq = 72,
+	.freq = 60,
 	.timing = {
 		.h_fp = 16,
 		.h_bp = 16,
@@ -320,7 +315,7 @@ static struct s3cfb_lcd nt35580 = {
 	.p_width = 52,
 	.p_height = 86,
 	.bpp = 24,
-	.freq = 72,
+	.freq = 70,
 	.timing = {
 		.h_fp = 10,
 		.h_bp = 20,
@@ -365,9 +360,9 @@ static struct s3cfb_lcd r61408 = {
 };
 
 #ifdef CONFIG_S5PV210_BIGMEM
-#define  S5PV210_VIDEO_SAMSUNG_MEMSIZE_FIMC0 (5120 * SZ_1K)
+#define  S5PV210_VIDEO_SAMSUNG_MEMSIZE_FIMC0 (6144 * SZ_1K)
 #define  S5PV210_VIDEO_SAMSUNG_MEMSIZE_FIMC1 (0)
-#define  S5PV210_VIDEO_SAMSUNG_MEMSIZE_FIMC2 (5120 * SZ_1K)
+#define  S5PV210_VIDEO_SAMSUNG_MEMSIZE_FIMC2 (6144 * SZ_1K)
 #else
 #define  S5PV210_VIDEO_SAMSUNG_MEMSIZE_FIMC0 (6144 * SZ_1K)
 #define  S5PV210_VIDEO_SAMSUNG_MEMSIZE_FIMC1 (9900 * SZ_1K)
@@ -458,6 +453,7 @@ static struct s5pv210_cpufreq_voltage smdkc110_cpufreq_volt[] = {
 		.vint	= 1000000,
 	},
 };
+
 
 static struct s5pv210_cpufreq_data smdkc110_cpufreq_plat = {
 	.volt	= smdkc110_cpufreq_volt,
@@ -693,8 +689,8 @@ static struct regulator_init_data herring_ldo16_data = {
 static struct regulator_init_data herring_ldo17_data = {
 	.constraints	= {
 		.name		= "VCC_3.0V_LCD",
-		.min_uV		= 3000000,
-		.max_uV		= 3000000,
+		.min_uV		= 2600000,
+		.max_uV		= 2600000,
 		.apply_uV	= 1,
 		.always_on	= 1,
 		.valid_ops_mask = REGULATOR_CHANGE_STATUS,
@@ -715,7 +711,7 @@ static struct regulator_init_data herring_buck1_data = {
 		.valid_ops_mask	= REGULATOR_CHANGE_VOLTAGE |
 				  REGULATOR_CHANGE_STATUS,
 		.state_mem	= {
-			.uV	= 1472000,
+			.uV	= 1500000,
 			.mode	= REGULATOR_MODE_NORMAL,
 			.disabled = 1,
 		},

@@ -89,7 +89,7 @@ IMG_UINT32   PVRSRV_BridgeDispatchKM( IMG_UINT32  Ioctl,
  * In arch/arm/mach-s5pv210/cpufreq.c, the bus speed is only lowered when the
  * CPU freq is below 200MHz.
  */
-#define MIN_CPU_KHZ_FREQ 200000
+#define MIN_CPU_KHZ_FREQ 100000
 
 static struct clk *g3d_clock;
 static struct regulator *g3d_pd_regulator;

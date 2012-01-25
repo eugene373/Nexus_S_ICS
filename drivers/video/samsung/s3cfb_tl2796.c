@@ -42,6 +42,8 @@
 
 #define NUM_GAMMA_REGS	21
 
+#define U32_MAX (~(u32)0)
+
 static const struct tl2796_gamma_adj_points default_gamma_adj_points = {
 	.v0 = BV_0,
 	.v1 = BV_1,
@@ -867,10 +869,10 @@ static ssize_t apply_custom_brightness_gammas_store(struct device *dev, struct d
 	int k = 0;
 
 	// copied from update_brightness() to generate easily a valid panel command sequence
-	gamma_regs[0] = 0x0FA;
-	gamma_regs[1] = 0x102;
-	gamma_regs[23] = 0x0FA;
-	gamma_regs[24] = 0x103;
+	gamma_regs[0] = 0x0FF;
+	gamma_regs[1] = 0x112;
+	gamma_regs[23] = 0x0FF;
+	gamma_regs[24] = 0x113;
 	gamma_regs[25] = ENDDEF;
 	gamma_regs[26] = 0x0000;
 

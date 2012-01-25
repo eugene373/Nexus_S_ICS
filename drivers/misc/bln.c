@@ -20,9 +20,7 @@
 
 #ifdef CONFIG_GENERIC_BLN_DEFAULT_ENABLED
 static bool bln_enabled = true; /* is BLN function is enabled */
-static int bln_blink_state = 1;
 #else
-static int bln_blink_state = 0;
 static bool bln_enabled = false; /* is BLN function is enabled */
 #endif
 static bool bln_ongoing = false; /* ongoing LED Notification */
@@ -31,8 +29,10 @@ static struct bln_implementation *bln_imp = NULL;
 static uint32_t blink_count;
 #ifdef CONFIG_GENERIC_BLN_DEFAULT_BLINKING
 static bool in_kernel_blink = true;
+static int bln_blink_state = 1;
 #else
 static bool in_kernel_blink = false;
+static int bln_blink_state = 0;
 #endif
 
 static struct wake_lock bln_wake_lock;

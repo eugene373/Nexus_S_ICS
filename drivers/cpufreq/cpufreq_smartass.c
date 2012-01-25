@@ -92,7 +92,7 @@ static unsigned int sample_rate_jiffies;
  * Max freqeuncy delta when ramping up.
  */
 
-#define DEFAULT_MAX_RAMP_UP (300 * 1000)
+#define DEFAULT_MAX_RAMP_UP (200 * 1000)
 static unsigned int max_ramp_up;
 
 /*
@@ -223,8 +223,8 @@ static unsigned int cpufreq_smartass_calc_freq(unsigned int cpu, struct cpufreq_
 
 	cpu_load = 100 * (delta_time - idle_time) / delta_time;
 	if (cpu_load < min_cpu_load) {
-	//if the current frequency is below 1.2ghz, everything is 200mhz steps
-	  if(policy->cur <= 1200000 && policy->cur >= 400000) {
+	//if the current frequency is below 1.1ghz, everything is 200mhz steps
+	  if(policy->cur <= 1100000 && policy->cur >= 400000) {
 /* catch the extra 200mhz gap between 400 and 800 when scaling down -netarchy */
 		if(policy->cur == 800000) {
 		      new_freq = policy->cur - 400000;
@@ -235,14 +235,14 @@ static unsigned int cpufreq_smartass_calc_freq(unsigned int cpu, struct cpufreq_
 		      return new_freq;
 		}
 	  } 
-	  //above 1.2ghz though, everything is 100mhz steps
+	  //above 1.1ghz though, everything is 100mhz steps
 	  else {
 	  	new_freq = policy->cur - 100000;
 	  	return new_freq;
 	  }	
 	}
 	if (cpu_load > max_cpu_load) {
-	  if(policy->cur < 1200000 && policy->cur > 100000) {
+	  if(policy->cur < 1100000 && policy->cur > 100000) {
 /* catch the gap between 400 and 800 when scaling up -netarchy */
 		if(policy->cur == 400000) {
 		      new_freq = policy->cur + 400000;

@@ -128,20 +128,20 @@ const unsigned long int_volt_max = 1250000;
 
 static struct s5pv210_dvs_conf dvs_conf[] = {
 	[L0] = {
-		.arm_volt   = 1440000,
-		.int_volt   = 1215000,
+		.arm_volt   = 1475000,
+		.int_volt   = 1225000,
 	},
 	[L1] = {
-		.arm_volt   = 1390000,
-		.int_volt   = 1195000,
+		.arm_volt   = 1400000,
+		.int_volt   = 1200000,
 	},
 	[L2] = {
-		.arm_volt   = 1330000,
+		.arm_volt   = 1350000,
 		.int_volt   = 1175000,
 	},
 	[L3] = {
-		.arm_volt   = 1310000,
-		.int_volt   = 1138000,
+		.arm_volt   = 1300000,
+		.int_volt   = 1100000,
 	},
 	[L4] = {
 		.arm_volt   = 1250000,
@@ -200,7 +200,7 @@ static struct s3c_freq clk_info[] = {
 		.hclk_tns   = 0,
 		.hclk       = 133000,
 		.pclk       = 66000,
-		.hclk_msys  = 200000,
+		.hclk_msys  = 166750,
 		.pclk_msys  = 100000,
 		.hclk_dsys  = 166750,
 		.pclk_dsys  = 83375,
@@ -1078,4 +1078,5 @@ static int __init s5pv210_cpufreq_init(void)
 }
 
 late_initcall(s5pv210_cpufreq_init);
+
 
