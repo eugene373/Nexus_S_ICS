@@ -175,6 +175,47 @@ config CPU_FREQ_DEFAULT_GOV_MINMAX
 	  frequency jumps does by the governor. This is aimed at maximizing
 	  both perfomance and battery life.
 
+config CPU_FREQ_DEFAULT_GOV_WHEATLEY
+  bool "wheatley"
+  select CPU_FREQ_GOV_WHEATLEY
+  select CPU_FREQ_GOV_PERFORMANCE
+  help
+    Use the CPUFreq governor 'wheatley' as default.
+
+config CPU_FREQ_DEFAULT_GOV_LIONHEART
+  bool "lionheart"
+  select CPU_FREQ_GOV_LIONHEART
+  select CPU_FREQ_GOV_PERFORMANCE
+  help
+    Use the CPUFreq governor 'lionheart' as default.
+
+config CPU_FREQ_DEFAULT_GOV_INTELLIDEMAND
+  bool "intellidemand"
+  select CPU_FREQ_GOV_INTELLIDEMAND
+  select CPU_FREQ_GOV_PERFORMANCE
+  help
+    Use the CPUFreq governor 'intellidemand' as default.
+
+config CPU_FREQ_DEFAULT_GOV_BRAZILIANWAX
+  bool "brazilianwax"
+  select CPU_FREQ_GOV_BRAZILIANWAX
+  select CPU_FREQ_GOV_PERFORMANCE
+  help
+    Use the CPUFreq governor 'lionheart' as default.
+
+config CPU_FREQ_DEFAULT_GOV_ONDEMANDX
+  bool "ondemandx"
+  select CPU_FREQ_GOV_ONDEMANDX
+  select CPU_FREQ_GOV_PERFORMANCE
+  help
+    Use the CPUFreq governor 'lionheart' as default.
+
+config CPU_FREQ_DEFAULT_GOV_SAVAGEDZEN
+  bool "savagedzen"
+  select CPU_FREQ_GOV_SAVAGEDZEN
+  select CPU_FREQ_GOV_PERFORMANCE
+  help
+    Use the CPUFreq governor 'lionheart' as default.
 
 endchoice
 
@@ -317,6 +358,30 @@ config CPU_FREQ_GOV_MINMAX
 	  the policy. The frequency is selected according to the load.
 
 	  If in doubt, say N.
+
+config CPU_FREQ_GOV_WHEATLEY
+  tristate "'wheatley' cpufreq governor"
+  depends on CPU_FREQ
+
+config CPU_FREQ_GOV_LIONHEART
+  tristate "'lionheart' cpufreq governor"
+  depends on CPU_FREQ
+
+config CPU_FREQ_GOV_INTELLIDEMAND
+  tristate "'intellidemand' cpufreq governor"
+  depends on CPU_FREQ
+
+config CPU_FREQ_GOV_BRAZILIANWAX
+  tristate "'brazilianwax' cpufreq governor"
+  depends on CPU_FREQ
+
+config CPU_FREQ_GOV_ONDEMANDX
+  tristate "'ondemandx' cpufreq governor"
+  depends on CPU_FREQ
+
+config CPU_FREQ_GOV_SAVAGEDZEN
+  tristate "'savagedzen' cpufreq governor"
+  depends on CPU_FREQ
 
 config CPU_FREQ_GOV_INTERACTIVEX
 tristate "'interactiveX' cpufreq policy governor"

@@ -165,7 +165,7 @@ static struct s5pv210_dvs_conf dvs_conf[] = {
 	},
 };
 
-static u32 clkdiv_val[9][11] = {
+static u32 clkdiv_val[10][11] = {
 	/*
 	 * Clock divider value for following
 	 * { APLL, A2M, HCLK_MSYS, PCLK_MSYS,

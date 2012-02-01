@@ -75,7 +75,7 @@ static spinlock_t down_cpumask_lock;
 /*
  * The minimum amount of time to spend at a frequency before we can step up.
  */
-#define DEFAULT_UP_SAMPLE_TIME 20000
+#define DEFAULT_UP_SAMPLE_TIME 10000
 static unsigned long up_sample_time;
 
 /*
@@ -100,7 +100,7 @@ enum {
 /*
  * CPU freq will be increased if measured load > inc_cpu_load;
  */
-#define DEFAULT_INC_CPU_LOAD 60
+#define DEFAULT_INC_CPU_LOAD 90
 static unsigned long inc_cpu_load;
 
 /*
@@ -114,7 +114,7 @@ static unsigned long dec_cpu_load;
  * Increasing frequency table index
  * zero disables and causes to always jump straight to max frequency.
  */
-#define DEFAULT_PUMP_UP_STEP 1
+#define DEFAULT_PUMP_UP_STEP 4
 static unsigned long pump_up_step;
 
 /*
